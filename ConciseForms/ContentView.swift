@@ -7,15 +7,51 @@
 
 import SwiftUI
 
+class SettingsViewModel: ObservableObject {
+  @Published var displayName = ""
+  @Published var protectPosts = false
+  @Published var sendNotifications = false
+  @Published var digest = Digest.off
+}
+
 struct ContentView: View {
+  
+  @ObservedObject var viewModel: SettingsViewModel
+  
   var body: some View {
-    Text("Hello, world!")
-      .padding()
+    Form {
+      Section(header: Text("Profile")) {
+        TextField("Display name", text: self.$viewModel.displayName)
+        Toggle("Protect my posts", isOn: self.$viewModel.protectPosts)
+      }
+      
+      Section(header: Text("Communications")) {
+        Toggle("Send notifications", isOn: self.$viewModel.sendNotifications)
+        Picker("Top posts digest", selection: self.$viewModel.digest) {
+          ForEach(Digest.allCases, id: \.self) { digest in
+            Text(digest.rawValue)
+              .tag(digest)
+          }
+        }
+      }
+    }
+    .navigationTitle("Settings")
   }
+}
+
+enum Digest: String, CaseIterable {
+  case off
+  case daily
+  case weekly
+  case monthly
 }
 
 struct ContentView_Previews: PreviewProvider {
   static var previews: some View {
-    ContentView()
+    NavigationView {
+      ContentView(
+        viewModel: SettingsViewModel()
+      )
+    }
   }
 }
