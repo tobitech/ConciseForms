@@ -11,9 +11,11 @@ import SwiftUI
 struct ConciseFormsApp: App {
   var body: some Scene {
     WindowGroup {
-      ContentView(
-        viewModel: SettingsViewModel()
-      )
+      NavigationView {
+        VanillaSwiftUIFormView(
+          viewModel: SettingsViewModel()
+        )
+      }
     }
   }
 }
