@@ -12,6 +12,13 @@ class SettingsViewModel: ObservableObject {
   @Published var protectPosts = false
   @Published var sendNotifications = false
   @Published var digest = Digest.off
+  
+  func reset() {
+    self.digest = .off
+    self.displayName = ""
+    self.protectPosts = false
+    self.sendNotifications = false
+  }
 }
 
 struct ContentView: View {
@@ -27,12 +34,19 @@ struct ContentView: View {
       
       Section(header: Text("Communications")) {
         Toggle("Send notifications", isOn: self.$viewModel.sendNotifications)
-        Picker("Top posts digest", selection: self.$viewModel.digest) {
-          ForEach(Digest.allCases, id: \.self) { digest in
-            Text(digest.rawValue)
-              .tag(digest)
+        if self.viewModel.sendNotifications {
+          Picker("Top posts digest", selection: self.$viewModel.digest) {
+            ForEach(Digest.allCases, id: \.self) { digest in
+              Text(digest.rawValue)
+                .tag(digest)
+            }
           }
         }
+      }
+      
+      // Let's make sure we can pass data the other way from model to UI
+      Button("Reset") {
+        self.viewModel.reset()
       }
     }
     .navigationTitle("Settings")
