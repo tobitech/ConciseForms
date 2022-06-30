@@ -24,24 +24,35 @@ class SettingsViewModel: ObservableObject {
     }
   }
   @Published var protectPosts = false
-  @Published var sendNotifications = false {
-    didSet {
-      guard self.sendNotifications else { return }
-      
-      // let's check if the user has been previously denied.
-      UNUserNotificationCenter.current().getNotificationSettings { settings in
-        guard settings.authorizationStatus != .denied else {
+  @Published var sendNotifications = false
+  
+  func attempToggleSendNotifications(isOn: Bool) {
+    guard isOn else {
+      self.sendNotifications = false
+      return
+    }
+    
+    // let's check if the user has been previously denied.
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+      guard settings.authorizationStatus != .denied else {
+        DispatchQueue.main.async {
           self.alert = AlertState(title: "You need to enable permission from iOS Settings")
-          self.sendNotifications = false
-          return
         }
-        
-        UNUserNotificationCenter.current().requestAuthorization(options: .alert) { granted, error in
-          if !granted || error != nil {
-            DispatchQueue.main.async {
-              self.sendNotifications = false
-            }
+        return
+      }
+      
+      // optimistically set this to true since we know it hasn't been denied.
+      DispatchQueue.main.async {
+        self.sendNotifications = true
+      }
+      
+      UNUserNotificationCenter.current().requestAuthorization(options: .alert) { granted, error in
+        if !granted || error != nil {
+          DispatchQueue.main.async {
+            self.sendNotifications = false
           }
+        } else {
+          UIApplication.shared.registerForRemoteNotifications()
         }
       }
     }
@@ -67,7 +78,17 @@ struct VanillaSwiftUIFormView: View {
       }
       
       Section(header: Text("Communications")) {
-        Toggle("Send notifications", isOn: self.$viewModel.sendNotifications)
+        Toggle(
+          "Send notifications",
+          isOn: Binding(
+            get: { self.viewModel.sendNotifications },
+            set: { isOn in
+              self.viewModel.attempToggleSendNotifications(isOn: isOn)
+              // this will give the same result where the value is eagerly set to on.
+              // self.viewModel.sendNotifications = isOn
+            }) // self.$viewModel.sendNotifications
+        )
+        
         if self.viewModel.sendNotifications {
           Picker("Top posts digest", selection: self.$viewModel.digest) {
             ForEach(Digest.allCases, id: \.self) { digest in
