@@ -92,6 +92,26 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
     return .none
   }
 }
+  .form(action: /ConciseSettingsAction.form)
+
+extension Reducer {
+  func form(
+    // case paths just like key paths (for structs) allows us to isolate
+  // certain properties in an enum
+    action formAction: CasePath<Action, FormAction<State>>
+  ) -> Self {
+    Self { state, action, environment in
+      guard let formAction = formAction.extract(from: action) else {
+        return self.run(&state, action, environment)
+      }
+      
+      formAction.setter(&state)
+      
+      return self.run(&state, action, environment)
+    }
+  }
+}
+
 
 struct ConciseTCAFormView: View {
   
