@@ -29,8 +29,31 @@ struct SettingsEnvironment {
 }
 
 let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment> { state, action, environment in
-  
-  return .none
+  switch action {
+  case let .digestChange(digest):
+    state.digest = digest
+    return .none
+
+  case .dismissAlert:
+    state.alert = nil
+    return .none
+
+  case let .displayNameChanged(displayName):
+    state.displayName = displayName
+    return .none
+
+  case let .protectMyPostsChanged(protectMyPosts):
+    state.protectPosts = protectMyPosts
+    return .none
+
+  case .resetButtonTapped:
+    state = .init()
+    return .none
+
+  case let .sendNotificationsChanged(sendNotifications):
+    state.sendNotifications = sendNotifications
+    return .none
+  }
 }
 
 struct TCAFormView: View {
