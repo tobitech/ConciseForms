@@ -41,16 +41,42 @@ struct TCAFormView: View {
     WithViewStore(self.store) { viewStore in
       Form {
         Section(header: Text("Profile")) {
-          TextField("Display name", text: .constant(""))
-          Toggle("Protect my posts", isOn: .constant(false))
+          TextField(
+            "Display name",
+            text: viewStore.binding(
+              get: \.displayName,
+              send: SettingsAction.displayNameChanged
+//            get: { settingsState in settingsState.displayName },
+//            send: { newDisplayName in SettingsAction.displayNameChanged(newDisplayName) }
+            )
+          )
+          Toggle(
+            "Protect my posts",
+            isOn: viewStore.binding(
+              get: \.protectPosts,
+              send: SettingsAction.protectMyPostsChanged
+            )
+          )
         }
         
         Section(header: Text("Communications")) {
-          Toggle("Send notifications", isOn: .constant(false))
+          Toggle(
+            "Send notifications",
+            isOn: viewStore.binding(
+              get: \.sendNotifications,
+              send: SettingsAction.sendNotificationsChanged
+            )
+          )
           
-          if true {
-            Picker("Top posts digest", selection: .constant(Digest.off)) {
-              ForEach(Digest.allCases, id: \.self) { digest in
+          if viewStore.sendNotifications {
+            Picker(
+              "Top posts digest",
+              selection: viewStore.binding(
+                get: \.digest,
+                send: SettingsAction.digestChange
+              )
+            ) {
+                ForEach(Digest.allCases, id: \.self) { digest in
                 Text(digest.rawValue)
                   .tag(digest)
               }
@@ -58,12 +84,16 @@ struct TCAFormView: View {
           }
         }
         
-        // Let's make sure we can pass data the other way from model to UI
         Button("Reset") {
-          // self.viewModel.reset()
+          viewStore.send(.resetButtonTapped)
         }
       }
-      .alert(item: .constant(AlertState?.none)) { alert in
+      .alert(
+        item: viewStore.binding(
+          get: \.alert,
+          send: SettingsAction.dismissAlert
+        )
+      ) { alert in
         Alert(title: Text(alert.title))
       }
       .navigationTitle("Settings")
