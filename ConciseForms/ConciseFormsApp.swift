@@ -16,10 +16,21 @@ struct ConciseFormsApp: App {
 //        VanillaSwiftUIFormView(
 //          viewModel: SettingsViewModel()
 //        )
-        TCAFormView(
+//        TCAFormView(
+//          store: Store(
+//            initialState: SettingsState(),
+//            reducer: settingsReducer,
+//            environment: SettingsEnvironment(
+//              mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+//              userNotifications: .live
+//            )
+//          )
+//        )
+        
+        ConciseTCAFormView(
           store: Store(
             initialState: SettingsState(),
-            reducer: settingsReducer,
+            reducer: conciseSettingsReducer,
             environment: SettingsEnvironment(
               mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
               userNotifications: .live

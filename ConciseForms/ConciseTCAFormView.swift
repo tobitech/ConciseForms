@@ -10,13 +10,13 @@ import SwiftUI
 
 enum ConciseSettingsAction: Equatable {
   case authorizationResponse(Result<Bool, NSError>)
-  case digestChanged(Digest)
-  case dismissAlert
-  case displayNameChanged(String)
+//  case digestChanged(Digest)
+//  case dismissAlert
+//  case displayNameChanged(String)
   case notificationsSettingsResponse(UserNotificationsClient.Settings)
-  case protectMyPostsChanged(Bool)
+//  case protectMyPostsChanged(Bool)
   case resetButtonTapped
-  case sendNotificationsChanged(Bool)
+//  case sendNotificationsChanged(Bool)
   
 //  case form((inout SettingsState) -> Void)
   
@@ -77,17 +77,17 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
       .fireAndForget()
     : .none
     
-  case let .digestChanged(digest):
-    state.digest = digest
-    return .none
+//  case let .digestChanged(digest):
+//    state.digest = digest
+//    return .none
     
-  case .dismissAlert:
-    state.alert = nil
-    return .none
+//  case .dismissAlert:
+//    state.alert = nil
+//    return .none
     
-  case let .displayNameChanged(displayName):
-    state.displayName = String(displayName.prefix(16))
-    return .none
+//  case let .displayNameChanged(displayName):
+//    state.displayName = String(displayName.prefix(16))
+//    return .none
     
   case let .notificationsSettingsResponse(settings):
     switch settings.authorizationStatus {
@@ -109,24 +109,24 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
       return .none
     }
     
-  case let .protectMyPostsChanged(protectMyPosts):
-    state.protectPosts = protectMyPosts
-    return .none
+//  case let .protectMyPostsChanged(protectMyPosts):
+//    state.protectPosts = protectMyPosts
+//    return .none
     
   case .resetButtonTapped:
     state = .init()
     return .none
     
-  case let .sendNotificationsChanged(sendNotifications):
-    guard sendNotifications else {
-      state.sendNotifications = sendNotifications
-      return .none
-    }
-    
-    return environment.userNotifications.getNotificationSettings()
-      .receive(on: environment.mainQueue)
-      .map(ConciseSettingsAction.notificationsSettingsResponse)
-      .eraseToEffect()
+//  case let .sendNotificationsChanged(sendNotifications):
+//    guard sendNotifications else {
+//      state.sendNotifications = sendNotifications
+//      return .none
+//    }
+//
+//    return environment.userNotifications.getNotificationSettings()
+//      .receive(on: environment.mainQueue)
+//      .map(ConciseSettingsAction.notificationsSettingsResponse)
+//      .eraseToEffect()
     
 //  case let .form(update):
 //    update(&state)
@@ -143,8 +143,20 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
     // we could even check what keypath was sent.
     if formAction.keyPath == \SettingsState.displayName {
       // TODO: truncate name
+      state.displayName = String(state.displayName.prefix(16))
     } else if formAction.keyPath == \SettingsState.sendNotifications {
       // TODO: request notification authorization
+      guard state.sendNotifications else {
+        return .none
+      }
+      
+      // we don't want to eagerly set the value and we need to undo setting it with keypath that is the first thing done above in this case.
+      state.sendNotifications = false
+      
+      return environment.userNotifications.getNotificationSettings()
+        .receive(on: environment.mainQueue)
+        .map(ConciseSettingsAction.notificationsSettingsResponse)
+        .eraseToEffect()
     }
     return .none
   }
@@ -164,22 +176,12 @@ struct ConciseTCAFormView: View {
               keyPath: \.displayName,
               send: ConciseSettingsAction.form
             )
-//              Binding(
-//              get: { viewStore.displayName },
-//              set: {
-//                viewStore.send(.form { $0.displayName = newDisplayNamae })
-//                viewStore.send(.form(.init(\.displayName, $0)))}
-//            )
-//            text: viewStore.binding(
-//              get: \.displayName,
-//              send: ConciseSettingsAction.displayNameChanged
-//            )
           )
           Toggle(
             "Protect my posts",
             isOn: viewStore.binding(
-              get: \.protectPosts,
-              send: ConciseSettingsAction.protectMyPostsChanged
+              keyPath: \.protectPosts,
+              send: ConciseSettingsAction.form
             )
           )
         }
@@ -188,8 +190,8 @@ struct ConciseTCAFormView: View {
           Toggle(
             "Send notifications",
             isOn: viewStore.binding(
-              get: \.sendNotifications,
-              send: ConciseSettingsAction.sendNotificationsChanged
+              keyPath: \.sendNotifications,
+              send: ConciseSettingsAction.form
             )
           )
           
@@ -197,8 +199,8 @@ struct ConciseTCAFormView: View {
             Picker(
               "Top posts digest",
               selection: viewStore.binding(
-                get: \.digest,
-                send: ConciseSettingsAction.digestChanged
+                keyPath: \.digest,
+                send: ConciseSettingsAction.form
               )
             ) {
               ForEach(Digest.allCases, id: \.self) { digest in
@@ -215,8 +217,8 @@ struct ConciseTCAFormView: View {
       }
       .alert(
         item: viewStore.binding(
-          get: \.alert,
-          send: ConciseSettingsAction.dismissAlert
+          keyPath: \.alert,
+          send: ConciseSettingsAction.form
         )
       ) { alert in
         Alert(title: Text(alert.title))
