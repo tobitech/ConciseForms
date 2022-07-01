@@ -13,10 +13,20 @@ struct UserNotificationsClient {
   // If it were synchronous we would just use a plain old closure.
   // Wrapping it with Effect also gives us all the functionalities and operators that combine provides.
   // Never because it does't produce an error.
-  var getNotificationSettings: () -> Effect<UNNotificationSettings, Never>
+  var getNotificationSettings: () -> Effect<Settings, Never>
   // this one doesn't return any data and doesn't produce an error, more like fire and forget.
   var registerForRemoteNotifications: () -> Effect<Never, Never>
   var requestAuthorisation: (UNAuthorizationOptions) -> Effect<Bool, Error>
+  
+  struct Settings: Equatable {
+    var authorizationStatus: UNAuthorizationStatus
+  }
+}
+
+extension UserNotificationsClient.Settings {
+  init(rawValue: UNNotificationSettings) {
+    self.authorizationStatus = rawValue.authorizationStatus
+  }
 }
 
 // Let's provide a production or live implementation for our notifications client.
@@ -28,7 +38,7 @@ extension UserNotificationsClient {
       // 1:  to create an effect that emits a single time asynchronously, you can use the .future effect. it exposes a callback that you will invoke once you have your value.
       .future { callback in
         UNUserNotificationCenter.current().getNotificationSettings { settings in
-          callback(.success(settings))
+          callback(.success(UserNotificationsClient.Settings(rawValue: settings)))
         }
       }
     },
@@ -64,7 +74,7 @@ enum SettingsAction: Equatable {
   case digestChange(Digest)
   case dismissAlert
   case displayNameChanged(String)
-  case notificationsSettingsResponse(UNNotificationSettings)
+  case notificationsSettingsResponse(UserNotificationsClient.Settings)
   case protectMyPostsChanged(Bool)
   case resetButtonTapped
   case sendNotificationsChanged(Bool)
@@ -229,7 +239,11 @@ struct TCAFormView_Previews: PreviewProvider {
           reducer: settingsReducer,
           environment: SettingsEnvironment(
             mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
-            userNotifications: .live
+            userNotifications: UserNotificationsClient(
+              getNotificationSettings: { Effect(value: .init(authorizationStatus: .denied)) },
+              registerForRemoteNotifications: { fatalError() },
+              requestAuthorisation: { _ in fatalError() }
+            )
           )
         )
       )
