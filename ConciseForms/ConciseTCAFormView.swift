@@ -10,44 +10,16 @@ import SwiftUI
 
 enum ConciseSettingsAction: Equatable {
   case authorizationResponse(Result<Bool, NSError>)
-//  case digestChanged(Digest)
-//  case dismissAlert
-//  case displayNameChanged(String)
   case notificationsSettingsResponse(UserNotificationsClient.Settings)
-//  case protectMyPostsChanged(Bool)
   case resetButtonTapped
-//  case sendNotificationsChanged(Bool)
-  
-//  case form((inout SettingsState) -> Void)
-  
-  // instead of hold a closure, we could hold on to a keypath.
-  // also assuming we could define generics on an enum case.
-  // maybe that will be possible in the future.
-  // but one thing we can do is define our own type so that we can do the generics works in there then it
-  // will define how form is created.
-  // case form(PartialKeyPath<SettingsState>, Any)
   
   case form(FormAction<SettingsState>)
-  
-  // we can now get rid of this since KeyPaths are equatable.
-//  static func == (lhs: ConciseSettingsAction, rhs: ConciseSettingsAction) -> Bool {
-//    fatalError()
-//  }
 }
 
-// Having our own type gives us the ability to restrict
-// the ways form actions are created.
-// we are adding a Root generic so that the type is reusuable in other screens not just Settings.
 struct FormAction<Root>: Equatable {
   
   let keyPath: PartialKeyPath<Root>
-  // doing it this way makes sure you can only create
-  // form action when you provide a value type
-  // that matches the type that was erased by the PartialKeyPath
-  // using this because Swift doesn't provide an AnyEquatable erased type and AnyHashable conforms to Equatable.
-  // Check Episode exercise on creating custom type erased AnyEquatable ourselves.
   let value: AnyHashable
-  // since we're using PartialKeyPath we are not able to write to the root, so we need to hold on to more information that will allow us set the value with this setter function.
   let setter: (inout Root) -> Void
   
   init<Value>(
@@ -77,18 +49,6 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
       .fireAndForget()
     : .none
     
-//  case let .digestChanged(digest):
-//    state.digest = digest
-//    return .none
-    
-//  case .dismissAlert:
-//    state.alert = nil
-//    return .none
-    
-//  case let .displayNameChanged(displayName):
-//    state.displayName = String(displayName.prefix(16))
-//    return .none
-    
   case let .notificationsSettingsResponse(settings):
     switch settings.authorizationStatus {
       
@@ -109,48 +69,19 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
       return .none
     }
     
-//  case let .protectMyPostsChanged(protectMyPosts):
-//    state.protectPosts = protectMyPosts
-//    return .none
-    
   case .resetButtonTapped:
     state = .init()
     return .none
-    
-//  case let .sendNotificationsChanged(sendNotifications):
-//    guard sendNotifications else {
-//      state.sendNotifications = sendNotifications
-//      return .none
-//    }
-//
-//    return environment.userNotifications.getNotificationSettings()
-//      .receive(on: environment.mainQueue)
-//      .map(ConciseSettingsAction.notificationsSettingsResponse)
-//      .eraseToEffect()
-    
-//  case let .form(update):
-//    update(&state)
-//    return .none
-    
-    // instead of binding on a closure, we could bind on a keypath and value.
-//  case let .form(keyPath, value):
+
   case let .form(formAction):
     formAction.setter(&state)
-    // this isn't possible because of PartialKeyPaths are not writeable.
-//    state[keyPath: formAction.keyPath] = formAction.value
-    
-    // since key paths are equatable and even hashable,
-    // we could even check what keypath was sent.
     if formAction.keyPath == \SettingsState.displayName {
-      // TODO: truncate name
       state.displayName = String(state.displayName.prefix(16))
     } else if formAction.keyPath == \SettingsState.sendNotifications {
-      // TODO: request notification authorization
       guard state.sendNotifications else {
         return .none
       }
       
-      // we don't want to eagerly set the value and we need to undo setting it with keypath that is the first thing done above in this case.
       state.sendNotifications = false
       
       return environment.userNotifications.getNotificationSettings()
@@ -196,6 +127,22 @@ struct ConciseTCAFormView: View {
           )
           
           if viewStore.sendNotifications {
+            Toggle(
+              "Mobile",
+              isOn: viewStore.binding(
+                keyPath: \.sendMobileNotifications,
+                send: ConciseSettingsAction.form
+              )
+            )
+            
+            Toggle(
+              "Email",
+              isOn: viewStore.binding(
+                keyPath: \.sendEmailNotifications,
+                send: ConciseSettingsAction.form
+              )
+            )
+            
             Picker(
               "Top posts digest",
               selection: viewStore.binding(

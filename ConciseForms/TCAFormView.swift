@@ -67,6 +67,8 @@ struct SettingsState: Equatable {
   var displayName = ""
   var protectPosts = false
   var sendNotifications = false
+  var sendMobileNotifications = false
+  var sendEmailNotifications = false
 }
 
 enum SettingsAction: Equatable {
