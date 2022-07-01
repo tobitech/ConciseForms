@@ -17,6 +17,12 @@ enum ConciseSettingsAction: Equatable {
   case protectMyPostsChanged(Bool)
   case resetButtonTapped
   case sendNotificationsChanged(Bool)
+  
+  case form((inout SettingsState) -> Void)
+  
+  static func == (lhs: ConciseSettingsAction, rhs: ConciseSettingsAction) -> Bool {
+    fatalError()
+  }
 }
 
 let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, SettingsEnvironment> { state, action, environment in
@@ -82,6 +88,10 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
       .receive(on: environment.mainQueue)
       .map(ConciseSettingsAction.notificationsSettingsResponse)
       .eraseToEffect()
+    
+  case let .form(update):
+    update(&state)
+    return .none
   }
 }
 
@@ -95,10 +105,16 @@ struct ConciseTCAFormView: View {
         Section(header: Text("Profile")) {
           TextField(
             "Display name",
-            text: viewStore.binding(
-              get: \.displayName,
-              send: ConciseSettingsAction.displayNameChanged
+            text: Binding(
+              get: { viewStore.dispplayName },
+              set: { newDisplayNamae in
+                viewStore.send(.form { $0.displayName = newDisplayNamae })
+              }
             )
+//            text: viewStore.binding(
+//              get: \.displayName,
+//              send: ConciseSettingsAction.displayNameChanged
+//            )
           )
           Toggle(
             "Protect my posts",
