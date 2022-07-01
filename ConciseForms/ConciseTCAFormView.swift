@@ -22,11 +22,45 @@ enum ConciseSettingsAction: Equatable {
   
   // instead of hold a closure, we could hold on to a keypath.
   // also assuming we could define generics on an enum case.
-  // maybe that will be possible in the future
-  case form<Value>(WritableKeyPath<SettingsState, Value>, Value)
+  // maybe that will be possible in the future.
+  // but one thing we can do is define our own type so that we can do the generics works in there then it
+  // will define how form is created.
+  // case form(PartialKeyPath<SettingsState>, Any)
   
-  static func == (lhs: ConciseSettingsAction, rhs: ConciseSettingsAction) -> Bool {
-    fatalError()
+  case form(FormAction<SettingsState>)
+  
+  // we can now get rid of this since KeyPaths are equatable.
+//  static func == (lhs: ConciseSettingsAction, rhs: ConciseSettingsAction) -> Bool {
+//    fatalError()
+//  }
+}
+
+// Having our own type gives us the ability to restrict
+// the ways form actions are created.
+// we are adding a Root generic so that the type is reusuable in other screens not just Settings.
+struct FormAction<Root>: Equatable {
+  
+  let keyPath: PartialKeyPath<Root>
+  // doing it this way makes sure you can only create
+  // form action when you provide a value type
+  // that matches the type that was erased by the PartialKeyPath
+  // using this because Swift doesn't provide an AnyEquatable erased type and AnyHashable conforms to Equatable.
+  // Check Episode exercise on creating custom type erased AnyEquatable ourselves.
+  let value: AnyHashable
+  // since we're using PartialKeyPath we are not able to write to the root, so we need to hold on to more information that will allow us set the value with this setter function.
+  let setter: (inout Root) -> Void
+  
+  init<Value>(
+    _ keyPath: WritableKeyPath<Root, Value>,
+    _ value: Value
+  ) where Value: Hashable {
+    self.keyPath = keyPath
+    self.value = AnyHashable(value)
+    self.setter = { $0[keyPath: keyPath] = value }
+  }
+  
+  static func == (lhs: FormAction<Root>, rhs: FormAction<Root>) -> Bool {
+    lhs.keyPath == rhs.keyPath && lhs.value == rhs.value
   }
 }
 
@@ -99,14 +133,17 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
 //    return .none
     
     // instead of binding on a closure, we could bind on a keypath and value.
-  case let .form(keyPath, value):
-    state[keyPath: keyPath] = value
+//  case let .form(keyPath, value):
+  case let .form(formAction):
+    formAction.setter(&state)
+    // this isn't possible because of PartialKeyPaths are not writeable.
+//    state[keyPath: formAction.keyPath] = formAction.value
     
     // since key paths are equatable and even hashable,
     // we could even check what keypath was sent.
-    if keyPath == \SettingsState.displayName {
+    if formAction.keyPath == \SettingsState.displayName {
       // TODO: truncate name
-    } else if keyPath == \SettingsState.sendNotifications {
+    } else if formAction.keyPath == \SettingsState.sendNotifications {
       // TODO: request notification authorization
     }
     return .none
@@ -123,13 +160,16 @@ struct ConciseTCAFormView: View {
         Section(header: Text("Profile")) {
           TextField(
             "Display name",
-            text: Binding(
-              get: { viewStore.dispplayName },
-              set: {
-//                viewStore.send(.form { $0.displayName = newDisplayNamae })
-                viewStore.send(.form(\.displayName, $0))
-              }
+            text: viewStore.binding(
+              keyPath: \.displayName,
+              send: ConciseSettingsAction.form
             )
+//              Binding(
+//              get: { viewStore.displayName },
+//              set: {
+//                viewStore.send(.form { $0.displayName = newDisplayNamae })
+//                viewStore.send(.form(.init(\.displayName, $0)))}
+//            )
 //            text: viewStore.binding(
 //              get: \.displayName,
 //              send: ConciseSettingsAction.displayNameChanged
@@ -183,6 +223,18 @@ struct ConciseTCAFormView: View {
       }
       .navigationTitle("Settings")
     }
+  }
+}
+
+extension ViewStore {
+  func binding<Value>(
+    keyPath: WritableKeyPath<State, Value>,
+    send action: @escaping (FormAction<State>) -> Action
+  ) -> Binding<Value> where Value: Hashable {
+    self.binding(
+      get: { $0[keyPath: keyPath] },
+      send: { action(.init(keyPath, $0)) }
+    )
   }
 }
 
