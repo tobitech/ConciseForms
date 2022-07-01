@@ -14,6 +14,8 @@ struct UserNotificationsClient {
   // Wrapping it with Effect also gives us all the functionalities and operators that combine provides.
   // Never because it does't produce an error.
   var getNotificationSettings: () -> Effect<UNNotificationSettings, Never>
+  // this one doesn't return any data and doesn't produce an error, more like fire and forget.
+  var registerForRemoteNotifications: () -> Effect<Never, Never>
   var requestAuthorisation: (UNAuthorizationOptions) -> Effect<Bool, Error>
 }
 
@@ -28,6 +30,11 @@ extension UserNotificationsClient {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
           callback(.success(settings))
         }
+      }
+    },
+    registerForRemoteNotifications: {
+      .fireAndForget {
+        UIApplication.shared.registerForRemoteNotifications()
       }
     },
     requestAuthorisation: { options in
@@ -64,6 +71,7 @@ enum SettingsAction: Equatable {
 }
 
 struct SettingsEnvironment {
+  var mainQueue: AnySchedulerOf<DispatchQueue>
   var userNotifications: UserNotificationsClient
 }
 
@@ -75,7 +83,11 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
     
   case let .authorizationResponse(.success(granted)):
     state.sendNotifications = granted
-    return .none
+    return granted
+    ? environment.userNotifications.registerForRemoteNotifications()
+    // we can cast Effect<Never, Never> to any effect since it doesn't return anything with this helper below.
+      .fireAndForget()
+    : .none
     
   case let .digestChange(digest):
     state.digest = digest
@@ -96,7 +108,7 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
       // optimistically set the toggle on so that we can now request for permission.
       state.sendNotifications = true
       return environment.userNotifications.requestAuthorisation(.alert)
-        .receive(on: DispatchQueue.main)
+        .receive(on: environment.mainQueue)
         .mapError { $0 as NSError }
       // we need to always return an effect that doesn't error out so that we can handle the error ourselves.
       // so we will use this helper operator from TCA to turn it to an effect of Result type and Never.
@@ -133,7 +145,7 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
     
     return environment.userNotifications.getNotificationSettings()
     // it's good that combine has an operator to get things back on to the main queue.
-      .receive(on: DispatchQueue.main)
+      .receive(on: environment.mainQueue)
       .map(SettingsAction.notificationsSettingsResponse)
       .eraseToEffect()
 //      .map { SettingsAction.notificationsSettingsResponse($0) }
@@ -216,6 +228,7 @@ struct TCAFormView_Previews: PreviewProvider {
           initialState: SettingsState(),
           reducer: settingsReducer,
           environment: SettingsEnvironment(
+            mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
             userNotifications: .live
           )
         )

@@ -21,6 +21,7 @@ struct ConciseFormsApp: App {
             initialState: SettingsState(),
             reducer: settingsReducer,
             environment: SettingsEnvironment(
+              mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
               userNotifications: .live
             )
           )
