@@ -28,16 +28,16 @@ class ConciseFormsTests: XCTestCase {
     )
     
     store.assert(
-      .send(.form(.init(\.displayName, "oluwatobi"))) {
+      .send(.form(.set(\.displayName, "oluwatobi"))) {
         $0.displayName = "oluwatobi"
       },
-      .send(.form(.init(\.displayName, "oluwatobi omotayo, israel"))) {
+      .send(.form(.set(\.displayName, "oluwatobi omotayo, israel"))) {
         $0.displayName = "oluwatobi omotay"
       },
-      .send(.form(.init(\.protectPosts, true))) {
+      .send(.form(.set(\.protectPosts, true))) {
         $0.protectPosts = true
       },
-      .send(.form(.init(\.digest, .weekly))) {
+      .send(.form(.set(\.digest, .weekly))) {
         $0.digest = .weekly
       }
     )
@@ -69,7 +69,7 @@ class ConciseFormsTests: XCTestCase {
     )
     
     store.assert(
-      .send(.form(.init(\.sendNotifications, true))),
+      .send(.form(.set(\.sendNotifications, true))),
       .receive(.notificationsSettingsResponse(.init(authorizationStatus: .notDetermined))) {
         $0.sendNotifications = true
       },

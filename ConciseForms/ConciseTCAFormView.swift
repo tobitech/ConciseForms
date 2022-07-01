@@ -31,6 +31,14 @@ struct FormAction<Root>: Equatable {
     self.setter = { $0[keyPath: keyPath] = value }
   }
   
+  // assuming anything that returns Self is an initialise somehow.
+  static func set<Value>(
+    _ keyPath: WritableKeyPath<Root, Value>,
+    _ value: Value
+  ) -> Self where Value: Hashable {
+    .init(keyPath, value)
+  }
+  
   static func == (lhs: FormAction<Root>, rhs: FormAction<Root>) -> Bool {
     lhs.keyPath == rhs.keyPath && lhs.value == rhs.value
   }
@@ -72,27 +80,52 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
   case .resetButtonTapped:
     state = .init()
     return .none
-
-  case let .form(formAction):
-    formAction.setter(&state)
-    if formAction.keyPath == \SettingsState.displayName {
-      state.displayName = String(state.displayName.prefix(16))
-    } else if formAction.keyPath == \SettingsState.sendNotifications {
-      guard state.sendNotifications else {
-        return .none
-      }
-      
-      state.sendNotifications = false
-      
-      return environment.userNotifications.getNotificationSettings()
-        .receive(on: environment.mainQueue)
-        .map(ConciseSettingsAction.notificationsSettingsResponse)
-        .eraseToEffect()
+    
+  case .form(\.displayName):
+    state.displayName = String(state.displayName.prefix(16))
+    return .none
+    
+  case .form(\.sendNotifications):
+    guard state.sendNotifications else {
+      return .none
     }
+    
+    state.sendNotifications = false
+    
+    return environment.userNotifications.getNotificationSettings()
+      .receive(on: environment.mainQueue)
+      .map(ConciseSettingsAction.notificationsSettingsResponse)
+      .eraseToEffect()
+
+  case .form:
     return .none
   }
 }
   .form(action: /ConciseSettingsAction.form)
+
+// based on the argument provided,
+// you get to say true/false does this pattern match.
+// if it matches you go into the case of the switch
+// if it doesn't you go on to the next case.
+// in our case the pattern we want to match is keypath
+func ~= <Root, Value> (
+  keyPath: WritableKeyPath<Root, Value>,
+  formAction: FormAction<Root>
+) -> Bool {
+  formAction.keyPath == keyPath
+}
+
+// it's similar to this
+//func foo() {
+//  switch 42 {
+//  case 10...:
+//    print("10 or more")
+//  default:
+//    break
+//  }
+//
+//  (1...10) ~= 42
+//}
 
 extension Reducer {
   func form(
