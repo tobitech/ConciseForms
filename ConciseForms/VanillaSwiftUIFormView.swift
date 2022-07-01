@@ -118,7 +118,7 @@ enum Digest: String, CaseIterable {
   case monthly
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct VanillaSwiftUIFormView_Previews: PreviewProvider {
   static var previews: some View {
     NavigationView {
       VanillaSwiftUIFormView(
