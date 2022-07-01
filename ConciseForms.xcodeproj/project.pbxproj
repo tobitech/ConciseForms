@@ -9,14 +9,27 @@
 /* Begin PBXBuildFile section */
 		2016551F286E8E6C00F9B604 /* TCAFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2016551E286E8E6C00F9B604 /* TCAFormView.swift */; };
 		20165522286E90BB00F9B604 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 20165521286E90BB00F9B604 /* ComposableArchitecture */; };
+		2016552A286EBB1000F9B604 /* ConciseFormsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20165529286EBB1000F9B604 /* ConciseFormsTests.swift */; };
 		20E839B6286DCA7600F8352A /* ConciseFormsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E839B5286DCA7600F8352A /* ConciseFormsApp.swift */; };
 		20E839B8286DCA7600F8352A /* VanillaSwiftUIFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E839B7286DCA7600F8352A /* VanillaSwiftUIFormView.swift */; };
 		20E839BA286DCA7900F8352A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 20E839B9286DCA7900F8352A /* Assets.xcassets */; };
 		20E839BD286DCA7900F8352A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 20E839BC286DCA7900F8352A /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		2016552B286EBB1000F9B604 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 20E839AA286DCA7600F8352A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20E839B1286DCA7600F8352A;
+			remoteInfo = ConciseForms;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		2016551E286E8E6C00F9B604 /* TCAFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCAFormView.swift; sourceTree = "<group>"; };
+		20165527286EBB1000F9B604 /* ConciseFormsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ConciseFormsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		20165529286EBB1000F9B604 /* ConciseFormsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConciseFormsTests.swift; sourceTree = "<group>"; };
 		20E839B2286DCA7600F8352A /* ConciseForms.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ConciseForms.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		20E839B5286DCA7600F8352A /* ConciseFormsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConciseFormsApp.swift; sourceTree = "<group>"; };
 		20E839B7286DCA7600F8352A /* VanillaSwiftUIFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VanillaSwiftUIFormView.swift; sourceTree = "<group>"; };
@@ -25,6 +38,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		20165524286EBB1000F9B604 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		20E839AF286DCA7600F8352A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -36,10 +56,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		20165528286EBB1000F9B604 /* ConciseFormsTests */ = {
+			isa = PBXGroup;
+			children = (
+				20165529286EBB1000F9B604 /* ConciseFormsTests.swift */,
+			);
+			path = ConciseFormsTests;
+			sourceTree = "<group>";
+		};
 		20E839A9286DCA7600F8352A = {
 			isa = PBXGroup;
 			children = (
 				20E839B4286DCA7600F8352A /* ConciseForms */,
+				20165528286EBB1000F9B604 /* ConciseFormsTests */,
 				20E839B3286DCA7600F8352A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				20E839B2286DCA7600F8352A /* ConciseForms.app */,
+				20165527286EBB1000F9B604 /* ConciseFormsTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -75,6 +105,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		20165526286EBB1000F9B604 /* ConciseFormsTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2016552D286EBB1000F9B604 /* Build configuration list for PBXNativeTarget "ConciseFormsTests" */;
+			buildPhases = (
+				20165523286EBB1000F9B604 /* Sources */,
+				20165524286EBB1000F9B604 /* Frameworks */,
+				20165525286EBB1000F9B604 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2016552C286EBB1000F9B604 /* PBXTargetDependency */,
+			);
+			name = ConciseFormsTests;
+			productName = ConciseFormsTests;
+			productReference = 20165527286EBB1000F9B604 /* ConciseFormsTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		20E839B1286DCA7600F8352A /* ConciseForms */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 20E839C0286DCA7900F8352A /* Build configuration list for PBXNativeTarget "ConciseForms" */;
@@ -105,6 +153,10 @@
 				LastSwiftUpdateCheck = 1340;
 				LastUpgradeCheck = 1340;
 				TargetAttributes = {
+					20165526286EBB1000F9B604 = {
+						CreatedOnToolsVersion = 13.4;
+						TestTargetID = 20E839B1286DCA7600F8352A;
+					};
 					20E839B1286DCA7600F8352A = {
 						CreatedOnToolsVersion = 13.4;
 					};
@@ -127,11 +179,19 @@
 			projectRoot = "";
 			targets = (
 				20E839B1286DCA7600F8352A /* ConciseForms */,
+				20165526286EBB1000F9B604 /* ConciseFormsTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		20165525286EBB1000F9B604 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		20E839B0286DCA7600F8352A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -144,6 +204,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		20165523286EBB1000F9B604 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2016552A286EBB1000F9B604 /* ConciseFormsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		20E839AE286DCA7600F8352A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -156,7 +224,51 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		2016552C286EBB1000F9B604 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20E839B1286DCA7600F8352A /* ConciseForms */;
+			targetProxy = 2016552B286EBB1000F9B604 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		2016552E286EBB1000F9B604 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J8A5ZAM5GV;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.oluwatobiomotayo.ConciseFormsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ConciseForms.app/ConciseForms";
+			};
+			name = Debug;
+		};
+		2016552F286EBB1000F9B604 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J8A5ZAM5GV;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.oluwatobiomotayo.ConciseFormsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ConciseForms.app/ConciseForms";
+			};
+			name = Release;
+		};
 		20E839BE286DCA7900F8352A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -332,6 +444,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2016552D286EBB1000F9B604 /* Build configuration list for PBXNativeTarget "ConciseFormsTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2016552E286EBB1000F9B604 /* Debug */,
+				2016552F286EBB1000F9B604 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		20E839AD286DCA7600F8352A /* Build configuration list for PBXProject "ConciseForms" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -71,7 +71,7 @@ struct SettingsState: Equatable {
 
 enum SettingsAction: Equatable {
   case authorizationResponse(Result<Bool, NSError>)
-  case digestChange(Digest)
+  case digestChanged(Digest)
   case dismissAlert
   case displayNameChanged(String)
   case notificationsSettingsResponse(UserNotificationsClient.Settings)
@@ -99,7 +99,7 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
       .fireAndForget()
     : .none
     
-  case let .digestChange(digest):
+  case let .digestChanged(digest):
     state.digest = digest
     return .none
 
@@ -202,7 +202,7 @@ struct TCAFormView: View {
               "Top posts digest",
               selection: viewStore.binding(
                 get: \.digest,
-                send: SettingsAction.digestChange
+                send: SettingsAction.digestChanged
               )
             ) {
                 ForEach(Digest.allCases, id: \.self) { digest in
