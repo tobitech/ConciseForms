@@ -18,7 +18,12 @@ enum ConciseSettingsAction: Equatable {
   case resetButtonTapped
   case sendNotificationsChanged(Bool)
   
-  case form((inout SettingsState) -> Void)
+//  case form((inout SettingsState) -> Void)
+  
+  // instead of hold a closure, we could hold on to a keypath.
+  // also assuming we could define generics on an enum case.
+  // maybe that will be possible in the future
+  case form<Value>(WritableKeyPath<SettingsState, Value>, Value)
   
   static func == (lhs: ConciseSettingsAction, rhs: ConciseSettingsAction) -> Bool {
     fatalError()
@@ -89,8 +94,21 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
       .map(ConciseSettingsAction.notificationsSettingsResponse)
       .eraseToEffect()
     
-  case let .form(update):
-    update(&state)
+//  case let .form(update):
+//    update(&state)
+//    return .none
+    
+    // instead of binding on a closure, we could bind on a keypath and value.
+  case let .form(keyPath, value):
+    state[keyPath: keyPath] = value
+    
+    // since key paths are equatable and even hashable,
+    // we could even check what keypath was sent.
+    if keyPath == \SettingsState.displayName {
+      // TODO: truncate name
+    } else if keyPath == \SettingsState.sendNotifications {
+      // TODO: request notification authorization
+    }
     return .none
   }
 }
@@ -107,8 +125,9 @@ struct ConciseTCAFormView: View {
             "Display name",
             text: Binding(
               get: { viewStore.dispplayName },
-              set: { newDisplayNamae in
-                viewStore.send(.form { $0.displayName = newDisplayNamae })
+              set: {
+//                viewStore.send(.form { $0.displayName = newDisplayNamae })
+                viewStore.send(.form(\.displayName, $0))
               }
             )
 //            text: viewStore.binding(
