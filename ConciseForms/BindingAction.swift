@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import SwiftUI
 
-struct FormAction<Root>: Equatable {
+struct BindingAction<Root>: Equatable {
   
   let keyPath: PartialKeyPath<Root>
   let value: AnyHashable
@@ -31,16 +31,16 @@ struct FormAction<Root>: Equatable {
     .init(keyPath, value)
   }
   
-  static func == (lhs: FormAction<Root>, rhs: FormAction<Root>) -> Bool {
+  static func == (lhs: BindingAction<Root>, rhs: BindingAction<Root>) -> Bool {
     lhs.keyPath == rhs.keyPath && lhs.value == rhs.value
   }
 }
 
 extension Reducer {
-  func form(
+  func binding(
     // case paths just like key paths (for structs) allows us to isolate
     // certain properties in an enum
-    action formAction: CasePath<Action, FormAction<State>>
+    action formAction: CasePath<Action, BindingAction<State>>
   ) -> Self {
     Self { state, action, environment in
       guard let formAction = formAction.extract(from: action) else {
@@ -58,7 +58,7 @@ extension Reducer {
 extension ViewStore {
   func binding<Value>(
     keyPath: WritableKeyPath<State, Value>,
-    send action: @escaping (FormAction<State>) -> Action
+    send action: @escaping (BindingAction<State>) -> Action
   ) -> Binding<Value> where Value: Hashable {
     self.binding(
       get: { $0[keyPath: keyPath] },
@@ -75,7 +75,7 @@ extension ViewStore {
 // in our case the pattern we want to match is keypath
 func ~= <Root, Value> (
   keyPath: WritableKeyPath<Root, Value>,
-  formAction: FormAction<Root>
+  formAction: BindingAction<Root>
 ) -> Bool {
   formAction.keyPath == keyPath
 }

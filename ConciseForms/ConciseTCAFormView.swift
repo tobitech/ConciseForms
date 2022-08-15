@@ -8,15 +8,20 @@
 import ComposableArchitecture
 import SwiftUI
 
-enum ConciseSettingsAction: Equatable {
+enum SettingsAction: Equatable {
   case authorizationResponse(Result<Bool, NSError>)
   case notificationsSettingsResponse(UserNotificationsClient.Settings)
   case resetButtonTapped
   
-  case form(FormAction<SettingsState>)
+  case binding(BindingAction<InconciseSettingsState>)
 }
 
-let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, SettingsEnvironment> { state, action, environment in
+struct SettingsEnvironment {
+  var mainQueue: AnySchedulerOf<DispatchQueue>
+  var userNotifications: UserNotificationsClient
+}
+
+let settingsReducer = Reducer<InconciseSettingsState, SettingsAction, SettingsEnvironment> { state, action, environment in
   switch action {
   case .authorizationResponse(.failure):
     state.sendNotifications = false
@@ -38,7 +43,7 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
         .receive(on: environment.mainQueue)
         .mapError { $0 as NSError }
         .catchToEffect()
-        .map(ConciseSettingsAction.authorizationResponse)
+        .map(SettingsAction.authorizationResponse)
       
     case .denied:
       state.sendNotifications = false
@@ -53,11 +58,11 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
     state = .init()
     return .none
     
-  case .form(\.displayName):
+  case .binding(\.displayName):
     state.displayName = String(state.displayName.prefix(16))
     return .none
     
-  case .form(\.sendNotifications):
+  case .binding(\.sendNotifications):
     guard state.sendNotifications else {
       return .none
     }
@@ -66,19 +71,19 @@ let conciseSettingsReducer = Reducer<SettingsState, ConciseSettingsAction, Setti
     
     return environment.userNotifications.getNotificationSettings()
       .receive(on: environment.mainQueue)
-      .map(ConciseSettingsAction.notificationsSettingsResponse)
+      .map(SettingsAction.notificationsSettingsResponse)
       .eraseToEffect()
 
-  case .form:
+  case .binding:
     return .none
   }
 }
-  .form(action: /ConciseSettingsAction.form)
+  .binding(action: /SettingsAction.binding)
 
 
 struct ConciseTCAFormView: View {
   
-  let store: Store<SettingsState, ConciseSettingsAction>
+  let store: Store<InconciseSettingsState, SettingsAction>
   
   var body: some View {
     WithViewStore(self.store) { viewStore in
@@ -88,14 +93,14 @@ struct ConciseTCAFormView: View {
             "Display name",
             text: viewStore.binding(
               keyPath: \.displayName,
-              send: ConciseSettingsAction.form
+              send: SettingsAction.binding
             )
           )
           Toggle(
             "Protect my posts",
             isOn: viewStore.binding(
               keyPath: \.protectPosts,
-              send: ConciseSettingsAction.form
+              send: SettingsAction.binding
             )
           )
         }
@@ -105,7 +110,7 @@ struct ConciseTCAFormView: View {
             "Send notifications",
             isOn: viewStore.binding(
               keyPath: \.sendNotifications,
-              send: ConciseSettingsAction.form
+              send: SettingsAction.binding
             )
           )
           
@@ -114,7 +119,7 @@ struct ConciseTCAFormView: View {
               "Mobile",
               isOn: viewStore.binding(
                 keyPath: \.sendMobileNotifications,
-                send: ConciseSettingsAction.form
+                send: SettingsAction.binding
               )
             )
             
@@ -122,7 +127,7 @@ struct ConciseTCAFormView: View {
               "Email",
               isOn: viewStore.binding(
                 keyPath: \.sendEmailNotifications,
-                send: ConciseSettingsAction.form
+                send: SettingsAction.binding
               )
             )
             
@@ -130,7 +135,7 @@ struct ConciseTCAFormView: View {
               "Top posts digest",
               selection: viewStore.binding(
                 keyPath: \.digest,
-                send: ConciseSettingsAction.form
+                send: SettingsAction.binding
               )
             ) {
               ForEach(Digest.allCases, id: \.self) { digest in
@@ -148,7 +153,7 @@ struct ConciseTCAFormView: View {
       .alert(
         item: viewStore.binding(
           keyPath: \.alert,
-          send: ConciseSettingsAction.form
+          send: SettingsAction.binding
         )
       ) { alert in
         Alert(title: Text(alert.title))
@@ -163,8 +168,8 @@ struct ConciseTCAFormView_Previews: PreviewProvider {
     NavigationView {
       ConciseTCAFormView(
         store: Store(
-          initialState: SettingsState(),
-          reducer: conciseSettingsReducer,
+          initialState: InconciseSettingsState(),
+          reducer: settingsReducer,
           environment: SettingsEnvironment(
             mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
             userNotifications: UserNotificationsClient(

@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import SwiftUI
 
-struct SettingsState: Equatable {
+struct InconciseSettingsState: Equatable {
   var alert: AlertState? = nil
   var digest = Digest.off
   var displayName = ""
@@ -18,7 +18,7 @@ struct SettingsState: Equatable {
   var sendEmailNotifications = false
 }
 
-enum SettingsAction: Equatable {
+enum InconciseSettingsAction: Equatable {
   case authorizationResponse(Result<Bool, NSError>)
   case digestChanged(Digest)
   case dismissAlert
@@ -29,12 +29,12 @@ enum SettingsAction: Equatable {
   case sendNotificationsChanged(Bool)
 }
 
-struct SettingsEnvironment {
+struct InconciseSettingsEnvironment {
   var mainQueue: AnySchedulerOf<DispatchQueue>
   var userNotifications: UserNotificationsClient
 }
 
-let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment> { state, action, environment in
+let InconciseSettingsReducer = Reducer<InconciseSettingsState, InconciseSettingsAction, InconciseSettingsEnvironment> { state, action, environment in
   switch action {
   case .authorizationResponse(.failure):
     state.sendNotifications = false
@@ -72,7 +72,7 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
       // we need to always return an effect that doesn't error out so that we can handle the error ourselves.
       // so we will use this helper operator from TCA to turn it to an effect of Result type and Never.
         .catchToEffect()
-        .map(SettingsAction.authorizationResponse)
+        .map(InconciseSettingsAction.authorizationResponse)
       return .none
 
     case .denied:
@@ -106,7 +106,7 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
     return environment.userNotifications.getNotificationSettings()
     // it's good that combine has an operator to get things back on to the main queue.
       .receive(on: environment.mainQueue)
-      .map(SettingsAction.notificationsSettingsResponse)
+      .map(InconciseSettingsAction.notificationsSettingsResponse)
       .eraseToEffect()
 //      .map { SettingsAction.notificationsSettingsResponse($0) }
   }
@@ -114,7 +114,7 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
 
 struct TCAFormView: View {
   
-  let store: Store<SettingsState, SettingsAction>
+  let store: Store<InconciseSettingsState, InconciseSettingsAction>
   
   var body: some View {
     WithViewStore(self.store) { viewStore in
@@ -124,7 +124,7 @@ struct TCAFormView: View {
             "Display name",
             text: viewStore.binding(
               get: \.displayName,
-              send: SettingsAction.displayNameChanged
+              send: InconciseSettingsAction.displayNameChanged
 //            get: { settingsState in settingsState.displayName },
 //            send: { newDisplayName in SettingsAction.displayNameChanged(newDisplayName) }
             )
@@ -133,7 +133,7 @@ struct TCAFormView: View {
             "Protect my posts",
             isOn: viewStore.binding(
               get: \.protectPosts,
-              send: SettingsAction.protectMyPostsChanged
+              send: InconciseSettingsAction.protectMyPostsChanged
             )
           )
         }
@@ -143,7 +143,7 @@ struct TCAFormView: View {
             "Send notifications",
             isOn: viewStore.binding(
               get: \.sendNotifications,
-              send: SettingsAction.sendNotificationsChanged
+              send: InconciseSettingsAction.sendNotificationsChanged
             )
           )
           
@@ -152,7 +152,7 @@ struct TCAFormView: View {
               "Top posts digest",
               selection: viewStore.binding(
                 get: \.digest,
-                send: SettingsAction.digestChanged
+                send: InconciseSettingsAction.digestChanged
               )
             ) {
                 ForEach(Digest.allCases, id: \.self) { digest in
@@ -170,7 +170,7 @@ struct TCAFormView: View {
       .alert(
         item: viewStore.binding(
           get: \.alert,
-          send: SettingsAction.dismissAlert
+          send: InconciseSettingsAction.dismissAlert
         )
       ) { alert in
         Alert(title: Text(alert.title))
@@ -185,9 +185,9 @@ struct TCAFormView_Previews: PreviewProvider {
     NavigationView {
       TCAFormView(
         store: Store(
-          initialState: SettingsState(),
-          reducer: settingsReducer,
-          environment: SettingsEnvironment(
+          initialState: InconciseSettingsState(),
+          reducer: InconciseSettingsReducer,
+          environment: InconciseSettingsEnvironment(
             mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
             userNotifications: UserNotificationsClient(
               getNotificationSettings: { Effect(value: .init(authorizationStatus: .denied)) },
