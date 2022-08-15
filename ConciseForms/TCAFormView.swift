@@ -119,13 +119,14 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
     case .notDetermined, .authorized, .provisional, .ephemeral:
       // optimistically set the toggle on so that we can now request for permission.
       state.sendNotifications = true
-      return environment.userNotifications.requestAuthorisation(.alert)
+      let someEffect = environment.userNotifications.requestAuthorisation(.alert)
         .receive(on: environment.mainQueue)
         .mapError { $0 as NSError }
       // we need to always return an effect that doesn't error out so that we can handle the error ourselves.
       // so we will use this helper operator from TCA to turn it to an effect of Result type and Never.
         .catchToEffect()
         .map(SettingsAction.authorizationResponse)
+      return .none
 
     case .denied:
       state.sendNotifications = false
