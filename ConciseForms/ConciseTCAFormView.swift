@@ -9,21 +9,22 @@ import ComposableArchitecture
 import SwiftUI
 
 struct SettingsState: Equatable {
-  var alert: AlertState? = nil
-  var digest = Digest.off
-  var displayName = ""
-  var protectPosts = false
-  var sendNotifications = false
-  var sendMobileNotifications = false
-  var sendEmailNotifications = false
+  @BindableState var alert: AlertState? = nil
+  @BindableState var digest = Digest.off
+  @BindableState var displayName = ""
+  var isLoading = false
+  @BindableState var protectPosts = false
+  @BindableState var sendNotifications = false
+  @BindableState var sendMobileNotifications = false
+  @BindableState var sendEmailNotifications = false
 }
 
-enum SettingsAction: Equatable {
+enum SettingsAction: BindableAction {
   case authorizationResponse(Result<Bool, NSError>)
+  case binding(BindingAction<SettingsState>)
   case notificationsSettingsResponse(UserNotificationsClient.Settings)
   case resetButtonTapped
   
-  case binding(BindingAction<SettingsState>)
 }
 
 struct SettingsEnvironment {
@@ -68,11 +69,11 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
     state = .init()
     return .none
     
-  case .binding(\.displayName):
+  case .binding(\.$displayName):
     state.displayName = String(state.displayName.prefix(16))
     return .none
     
-  case .binding(\.sendNotifications):
+  case .binding(\.$sendNotifications):
     guard state.sendNotifications else {
       return .none
     }
@@ -89,7 +90,7 @@ let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment
   }
 }
 // higher-order reducer just like debug, logging.
-  .binding(action: /SettingsAction.binding)
+.binding()
 
 
 struct ConciseTCAFormView: View {
@@ -102,52 +103,34 @@ struct ConciseTCAFormView: View {
         Section(header: Text("Profile")) {
           TextField(
             "Display name",
-            text: viewStore.binding(
-              keyPath: \.displayName,
-              send: SettingsAction.binding
-            )
+            text: viewStore.binding(\.$displayName)
           )
           Toggle(
             "Protect my posts",
-            isOn: viewStore.binding(
-              keyPath: \.protectPosts,
-              send: SettingsAction.binding
-            )
+            isOn: viewStore.binding(\.$protectPosts)
           )
         }
         
         Section(header: Text("Communications")) {
           Toggle(
             "Send notifications",
-            isOn: viewStore.binding(
-              keyPath: \.sendNotifications,
-              send: SettingsAction.binding
-            )
+            isOn: viewStore.binding(\.$sendNotifications)
           )
           
           if viewStore.sendNotifications {
             Toggle(
               "Mobile",
-              isOn: viewStore.binding(
-                keyPath: \.sendMobileNotifications,
-                send: SettingsAction.binding
-              )
+              isOn: viewStore.binding(\.$sendMobileNotifications)
             )
             
             Toggle(
               "Email",
-              isOn: viewStore.binding(
-                keyPath: \.sendEmailNotifications,
-                send: SettingsAction.binding
-              )
+              isOn: viewStore.binding(\.$sendEmailNotifications)
             )
             
             Picker(
               "Top posts digest",
-              selection: viewStore.binding(
-                keyPath: \.digest,
-                send: SettingsAction.binding
-              )
+              selection: viewStore.binding(\.$digest)
             ) {
               ForEach(Digest.allCases, id: \.self) { digest in
                 Text(digest.rawValue)
@@ -162,10 +145,7 @@ struct ConciseTCAFormView: View {
         }
       }
       .alert(
-        item: viewStore.binding(
-          keyPath: \.alert,
-          send: SettingsAction.binding
-        )
+        item: viewStore.binding(\.$alert)
       ) { alert in
         Alert(title: Text(alert.title))
       }

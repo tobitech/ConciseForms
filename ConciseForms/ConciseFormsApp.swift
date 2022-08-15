@@ -29,7 +29,7 @@ struct ConciseFormsApp: App {
         
         ConciseTCAFormView(
           store: Store(
-            initialState: InconciseSettingsState(),
+            initialState: SettingsState(),
             reducer: settingsReducer,
             environment: SettingsEnvironment(
               mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
