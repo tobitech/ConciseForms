@@ -8,12 +8,22 @@
 import ComposableArchitecture
 import SwiftUI
 
+struct SettingsState: Equatable {
+  var alert: AlertState? = nil
+  var digest = Digest.off
+  var displayName = ""
+  var protectPosts = false
+  var sendNotifications = false
+  var sendMobileNotifications = false
+  var sendEmailNotifications = false
+}
+
 enum SettingsAction: Equatable {
   case authorizationResponse(Result<Bool, NSError>)
   case notificationsSettingsResponse(UserNotificationsClient.Settings)
   case resetButtonTapped
   
-  case binding(BindingAction<InconciseSettingsState>)
+  case binding(BindingAction<SettingsState>)
 }
 
 struct SettingsEnvironment {
@@ -21,7 +31,7 @@ struct SettingsEnvironment {
   var userNotifications: UserNotificationsClient
 }
 
-let settingsReducer = Reducer<InconciseSettingsState, SettingsAction, SettingsEnvironment> { state, action, environment in
+let settingsReducer = Reducer<SettingsState, SettingsAction, SettingsEnvironment> { state, action, environment in
   switch action {
   case .authorizationResponse(.failure):
     state.sendNotifications = false
@@ -78,12 +88,13 @@ let settingsReducer = Reducer<InconciseSettingsState, SettingsAction, SettingsEn
     return .none
   }
 }
+// higher-order reducer just like debug, logging.
   .binding(action: /SettingsAction.binding)
 
 
 struct ConciseTCAFormView: View {
   
-  let store: Store<InconciseSettingsState, SettingsAction>
+  let store: Store<SettingsState, SettingsAction>
   
   var body: some View {
     WithViewStore(self.store) { viewStore in
@@ -168,7 +179,7 @@ struct ConciseTCAFormView_Previews: PreviewProvider {
     NavigationView {
       ConciseTCAFormView(
         store: Store(
-          initialState: InconciseSettingsState(),
+          initialState: SettingsState(),
           reducer: settingsReducer,
           environment: SettingsEnvironment(
             mainQueue: DispatchQueue.main.eraseToAnyScheduler(),

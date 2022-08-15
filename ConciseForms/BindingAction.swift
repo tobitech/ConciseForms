@@ -68,6 +68,7 @@ extension ViewStore {
 }
 
 
+// here we are overloading the pattern matching operator in swift.
 // based on the argument provided,
 // you get to say true/false does this pattern match.
 // if it matches you go into the case of the switch
